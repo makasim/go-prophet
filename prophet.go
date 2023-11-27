@@ -2,11 +2,15 @@ package prophet
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 )
+
+//go:embed py/forecast.py
+var forecastPy []byte
 
 type Prophet struct {
 	changePointPriorScale float64
@@ -51,6 +55,15 @@ func New(opts ...Option) *Prophet {
 }
 
 func (p *Prophet) Forecast(df DataFrame) ([]Forecast, error) {
+	f, err := os.CreateTemp(``, ``)
+	if err != nil {
+		return nil, fmt.Errorf("os: create temp: %w", err)
+	}
+
+	if err := os.WriteFile(f.Name(), forecastPy, 0644); err != nil {
+		return nil, fmt.Errorf("os: write file: %w", err)
+	}
+
 	in, err := json.Marshal(df)
 	if err != nil {
 		return nil, fmt.Errorf("data frame: json marsal: %w", err)
@@ -59,7 +72,7 @@ func (p *Prophet) Forecast(df DataFrame) ([]Forecast, error) {
 	buf := bytes.NewBuffer(make([]byte, 0, 1024))
 	outDec := json.NewDecoder(buf)
 
-	cmd := exec.Command("python3", "forecast.py")
+	cmd := exec.Command("python3", f.Name())
 	cmd.Env = os.Environ()
 	cmd.Stdin = bytes.NewBuffer(in)
 	cmd.Stdout = buf

@@ -1,0 +1,35 @@
+certifi==2023.7.22
+cffi==1.15.1
+cmdstanpy==1.2.0
+contourpy==1.2.0
+cycler==0.12.1
+docutils==0.20.1
+fonttools==4.45.1
+holidays==0.37
+importlib-resources==6.1.1
+kiwisolver==1.4.5
+matplotlib==3.8.2
+numpy==1.26.2
+packaging==23.2
+pandas==2.1.3
+pgsanity==0.2.9
+Pillow==10.1.0
+prophet==1.1.5
+pycparser==2.21
+Pygments @ file:///private/tmp/pygments-20230806-5780-mo9pes/Pygments-2.16.1
+pyparsing==3.1.1
+PyQt3D==5.15.5
+PyQt5==5.15.7
+PyQt5-sip==12.11.0
+PyQtChart==5.15.6
+PyQtDataVisualization==5.15.5
+PyQtNetworkAuth==5.15.5
+PyQtPurchasing==5.15.5
+PyQtWebEngine==5.15.6
+python-dateutil==2.8.2
+pytz==2023.3.post1
+six==1.16.0
+stanio==0.3.0
+tqdm==4.66.1
+typing_extensions @ file:///private/tmp/python-typing-extensions-20230702-5333-1ouzp2e/typing_extensions-4.7.1/dist/typing_extensions-4.7.1-py3-none-any.whl
+tzdata==2023.3
