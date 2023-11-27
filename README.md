@@ -7,7 +7,7 @@ A tiny wrapper for Meta's [prophet](https://facebook.github.io/prophet/) library
 Python is required to run the prophet library.
 
 ```bash
-pip install -r requirements.txt
+pip install -r py/requirements.txt
 python3 --version
 ```
 
