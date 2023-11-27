@@ -16,7 +16,9 @@ func main() {
 		panic(err)
 	}
 
-	p := prophet.New()
+	p := prophet.New(
+		prophet.WithIntervalWidth(0.95),
+	)
 
 	fs, err := p.Forecast(df)
 	if err != nil {
@@ -26,7 +28,7 @@ func main() {
 	log.Println(fs)
 }
 
-func csvToDataFrame(csvFile string) (prophet.DataFrame, error) {
+func csvToDataFrame(csvFile string) ([]prophet.DataPoint, error) {
 	f, err := os.Open(csvFile)
 	if err != nil {
 		return nil, fmt.Errorf("os: open: %w", err)
@@ -41,7 +43,7 @@ func csvToDataFrame(csvFile string) (prophet.DataFrame, error) {
 		return nil, fmt.Errorf("csv: reader: read all: %w", err)
 	}
 
-	df := prophet.DataFrame{}
+	var df []prophet.DataPoint
 	for i, record := range records {
 		if i == 0 {
 			continue

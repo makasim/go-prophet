@@ -13,11 +13,11 @@ import (
 var forecastPy []byte
 
 type Prophet struct {
-	changePointPriorScale float64
-	changePointRange      float64
-	intervalWidth         float64
-
-	df DataFrame
+	changePointPriorScale  float64
+	changePointRange       float64
+	intervalWidth          float64
+	futureDataFramePeriods int
+	futureDataFrameFreq    string
 }
 
 type Option func(p *Prophet)
@@ -40,12 +40,20 @@ func WithIntervalWidth(val float64) Option {
 	}
 }
 
-func New(opts ...Option) *Prophet {
-	p := &Prophet{
-		changePointPriorScale: 0.05,
-		changePointRange:      0.8,
-		intervalWidth:         0.8,
+func WithFutureDataFramePeriods(val int) Option {
+	return func(p *Prophet) {
+		p.futureDataFramePeriods = val
 	}
+}
+
+func WithFutureDataFrameFreq(val string) Option {
+	return func(p *Prophet) {
+		p.futureDataFrameFreq = val
+	}
+}
+
+func New(opts ...Option) *Prophet {
+	p := &Prophet{}
 
 	for _, opt := range opts {
 		opt(p)
@@ -54,11 +62,14 @@ func New(opts ...Option) *Prophet {
 	return p
 }
 
-func (p *Prophet) Forecast(df DataFrame) ([]Forecast, error) {
+func (p *Prophet) Forecast(df []DataPoint) ([]Forecast, error) {
 	f, err := os.CreateTemp(``, ``)
 	if err != nil {
 		return nil, fmt.Errorf("os: create temp: %w", err)
 	}
+	defer func() {
+		_ = os.Remove(f.Name())
+	}()
 
 	if err := os.WriteFile(f.Name(), forecastPy, 0644); err != nil {
 		return nil, fmt.Errorf("os: write file: %w", err)
@@ -72,7 +83,26 @@ func (p *Prophet) Forecast(df DataFrame) ([]Forecast, error) {
 	buf := bytes.NewBuffer(make([]byte, 0, 1024))
 	outDec := json.NewDecoder(buf)
 
-	cmd := exec.Command("python3", f.Name())
+	args := []string{
+		f.Name(),
+	}
+	if p.changePointPriorScale != 0 {
+		args = append(args, fmt.Sprintf(`--changepoint_prior_scale=%f`, p.changePointPriorScale))
+	}
+	if p.changePointRange != 0 {
+		args = append(args, fmt.Sprintf(`--changepoint_range=%f`, p.changePointPriorScale))
+	}
+	if p.intervalWidth != 0 {
+		args = append(args, fmt.Sprintf(`--interval_width=%f`, p.intervalWidth))
+	}
+	if p.futureDataFramePeriods != 0 {
+		args = append(args, fmt.Sprintf(`--future_dataframe_periods=%d`, p.futureDataFramePeriods))
+	}
+	if p.futureDataFrameFreq != `` {
+		args = append(args, fmt.Sprintf(`--future_dataframe_freq=%s`, p.futureDataFrameFreq))
+	}
+
+	cmd := exec.Command("python3", args...)
 	cmd.Env = os.Environ()
 	cmd.Stdin = bytes.NewBuffer(in)
 	cmd.Stdout = buf
@@ -99,8 +129,6 @@ func (p *Prophet) Forecast(df DataFrame) ([]Forecast, error) {
 
 	return fs, nil
 }
-
-type DataFrame []DataPoint
 
 type DataPoint struct {
 	Ds string  `json:"ds"`
