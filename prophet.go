@@ -63,18 +63,6 @@ func New(opts ...Option) *Prophet {
 }
 
 func (p *Prophet) Forecast(df []DataPoint) ([]Forecast, error) {
-	f, err := os.CreateTemp(``, ``)
-	if err != nil {
-		return nil, fmt.Errorf("os: create temp: %w", err)
-	}
-	defer func() {
-		_ = os.Remove(f.Name())
-	}()
-
-	if err := os.WriteFile(f.Name(), forecastPy, 0644); err != nil {
-		return nil, fmt.Errorf("os: write file: %w", err)
-	}
-
 	in, err := json.Marshal(df)
 	if err != nil {
 		return nil, fmt.Errorf("data frame: json marsal: %w", err)
@@ -83,9 +71,7 @@ func (p *Prophet) Forecast(df []DataPoint) ([]Forecast, error) {
 	buf := bytes.NewBuffer(make([]byte, 0, 1024))
 	outDec := json.NewDecoder(buf)
 
-	args := []string{
-		f.Name(),
-	}
+	args := []string{`-c`, string(forecastPy)}
 	if p.changePointPriorScale != 0 {
 		args = append(args, fmt.Sprintf(`--changepoint_prior_scale=%f`, p.changePointPriorScale))
 	}
