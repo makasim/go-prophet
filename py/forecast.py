@@ -4,6 +4,12 @@ import argparse
 import sys
 import json
 
+import logging
+logger = logging.getLogger('cmdstanpy')
+logger.addHandler(logging.NullHandler())
+logger.propagate = False
+logger.setLevel(logging.CRITICAL)
+
 json_data = sys.stdin.read()
 data = json.loads(json_data)
 df = pd.DataFrame(data)
